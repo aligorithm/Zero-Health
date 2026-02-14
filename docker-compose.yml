@@ -1,12 +1,15 @@
-version: '3.8'
+# Load environment variables from .env file
+# Create .env from .env.example for your configuration
 
 services:
   db:
     image: postgres:14-alpine
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: zero_health
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-zero_health}
     ports:
       - "5432:5432"
     volumes:
@@ -17,9 +20,11 @@ services:
       timeout: 5s
       retries: 5
 
-  # Local LLM Service using Ollama
+  # Local LLM Service using Ollama (only starts when LLM_PROVIDER=ollama)
   ollama:
     image: ollama/ollama:latest
+    profiles:
+      - ollama
     ports:
       - "${OLLAMA_PORT:-11435}:11434"  # Custom port to avoid conflicts
     volumes:
@@ -41,28 +46,25 @@ services:
     #         - driver: nvidia
     #           count: 1
     #           capabilities: [gpu]
-    # To disable Ollama service entirely, comment out this entire ollama service block
 
   server:
     build: .
     ports:
       - "5000:5000"
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=zero_health
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - JWT_SECRET=your-secret-key-here
-      # LLM Configuration - supports both OpenAI and local Ollama
-      - LLM_PROVIDER=${LLM_PROVIDER:-ollama}  # Options: 'openai' or 'ollama'
-      - OPENAI_API_KEY      # Required if LLM_PROVIDER=openai
-      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
-      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
-      # Ollama configuration - centralized settings
-      - OLLAMA_PORT=${OLLAMA_PORT:-11435}
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}  # Default model for Ollama
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-zero_health}
+      - POSTGRES_HOST=${POSTGRES_HOST:-db}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-here}
+      # LLM Configuration - simplified uniform variables
+      - LLM_PROVIDER=${LLM_PROVIDER:-ollama}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-llama3.2:3b}
+      - LLM_BASE_URL=${LLM_BASE_URL}
     command: >
       sh -c "
         echo '🚀 Starting Zero Health Server...' &&
@@ -78,9 +80,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      # Comment out the ollama dependency if you disable the ollama service
-      ollama:
-        condition: service_healthy
     restart: unless-stopped
 
   client:
@@ -95,4 +94,4 @@ services:
 
 volumes:
   postgres_data: 
-  ollama_data: 
+  ollama_data:

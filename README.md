@@ -36,39 +36,116 @@ cd zero-health
 
 ### 2. AI Provider Configuration
 
-Zero Health includes a **containerized local LLM (Ollama)** by default for complete offline operation. You can also use cloud AI providers.
+Zero Health now supports **multiple LLM providers** with simplified configuration using environment files.
 
-#### Option A: Local AI (Default) - Ollama
+#### Quick Start (Recommended)
 ```bash
-# Uses local Ollama container - no API key needed
+# 1. Copy the example environment file
+cp .env.example .env
+
+# 2. Edit .env with your preferred provider
+# 3. Start the application
 docker-compose up --build
 ```
 
-#### Option B: Cloud AI (OpenAI/Groq/etc.)
+#### Provider Options
+
+**Option A: OpenAI (Default)**
 ```bash
-# Set provider to use cloud AI instead of local Ollama
-export LLM_PROVIDER=openai
-export OPENAI_API_KEY=sk-your-key-here
-docker-compose up --build
+# Edit .env file:
+LLM_PROVIDER=openai
+LLM_API_KEY=sk-your-key-here
+LLM_MODEL=gpt-4o-mini
+
+# Then run:
+docker compose up -d
 ```
 
-#### Option C: Custom Ollama Port
+**Option B: Groq**
 ```bash
-# Change Ollama port if you have a conflicting service
-export OLLAMA_PORT=11436
-docker-compose up --build
+# Edit .env file:
+LLM_PROVIDER=groq
+LLM_API_KEY=gsk_your-key-here
+LLM_MODEL=llama3-8b-8192
+
+# Then run:
+docker compose up -d
 ```
 
-#### Option D: Disable Local AI Entirely
-To disable the Ollama service completely (if you only want to use cloud AI):
+**Option C: Z.AI**
+```bash
+# Edit .env file:
+LLM_PROVIDER=z_ai
+LLM_API_KEY=your-zai-key-here
+LLM_MODEL=zai-medical-7b
+
+# Then run:
+docker compose up -d
+```
+
+**Option D: DeepSeek**
+```bash
+# Edit .env file:
+LLM_PROVIDER=deepseek
+LLM_API_KEY=sk-your-deepseek-key-here
+LLM_MODEL=deepseek-coder
+
+# Then run:
+docker compose up -d
+```
+
+**Option E: Local Ollama**
+```bash
+# Edit .env file:
+LLM_PROVIDER=ollama
+LLM_API_KEY=your-api-key-here
+LLM_MODEL=llama3.2:3b
+OLLAMA_PORT=11435
+
+# Then run:
+docker compose --profile ollama up -d
+```
+
+**Option F: Custom OpenAI-Compatible API**
+```bash
+# Edit .env file:
+LLM_PROVIDER=custom
+LLM_API_KEY=your-custom-key
+LLM_MODEL=your-model
+LLM_BASE_URL=http://localhost:1234/v1
+
+# Then run:
+docker compose up -d
+```
+
+
+#### Disable Local AI
+
+To disable Ollama service completely (if you only want to use cloud AI):
+
+**Option 1: Use Docker Profiles (Recommended)**
+```bash
+# This automatically skips ollama service
+docker compose up -d
+
+# Only include ollama when explicitly needed
+docker compose --profile ollama up -d
+```
+
+**Option 2: Manual Disable**
 1. Edit `docker-compose.yml`
-2. Comment out the entire `ollama:` service block
+2. Comment out the entire `ollama:` service block (lines with `profiles: - ollama`)
 3. Comment out the `ollama:` dependency in the `server:` section
 
-**Note:** You may need to run docker-compose with sudo, and this may lead to environment variables not being passed from the shell. If you're having issues with the chatbot, try this:
-
+**Option 3: Use Cloud Provider**
 ```bash
-OPENAI_API_KEY=$OPENAI_API_KEY docker-compose up --build
+# Set a cloud provider in .env and ollama won't start
+LLM_PROVIDER=openai
+LLM_API_KEY=sk-your-key-here
+LLM_MODEL=gpt-4o-mini
+
+# Then run (no ollama will start)
+docker compose up -d
 ```
 
 ### 3. Access Application
@@ -213,19 +290,26 @@ Join our community to share your learnings, discuss exploits, and get help:
 
 ## Environment Variables
 
-### AI Provider Configuration
+### AI Provider Configuration (Simplified)
 ```bash
-# Choose AI provider (default: ollama for offline usage)
-LLM_PROVIDER=ollama                         # Options: 'openai' or 'ollama'
+# Core provider selection (default: ollama for offline usage)
+LLM_PROVIDER=ollama                         # Options: 'openai', 'groq', 'ollama', 'z_ai', 'deepseek', 'custom'
 
-# OpenAI/Cloud AI Settings (only needed if LLM_PROVIDER=openai)
-OPENAI_API_KEY=your-api-key-here            # Required for cloud AI
-OPENAI_MODEL=gpt-4o-mini                    # Optional: model to use
-OPENAI_BASE_URL=https://api.openai.com/v1   # Optional: API endpoint
+# Uniform LLM Configuration (works for all providers)
+LLM_API_KEY=your-api-key-here              # Required for cloud providers
+LLM_MODEL=your-model-name                   # Optional: model to use
+LLM_BASE_URL=your-custom-url                # Only needed for custom provider
 
-# Ollama/Local AI Settings (only needed if LLM_PROVIDER=ollama)
+# Provider-specific (when needed)
 OLLAMA_PORT=11435                           # Optional: external port (default: 11435)
-OLLAMA_MODEL=llama3.2:3b                    # Optional: model to use
+
+# Base URLs are automatically configured based on LLM_PROVIDER:
+# - openai: https://api.openai.com/v1
+# - groq: https://api.groq.com/openai/v1  
+# - z_ai: https://api.z.ai/v1
+# - deepseek: https://api.deepseek.com/v1
+# - custom: must set LLM_BASE_URL manually
+# - ollama: http://ollama:11434 (internal)
 ```
 
 ### Database (Auto-configured in Docker)
@@ -237,26 +321,20 @@ POSTGRES_DB=zero_health
 
 ### Full Example Configurations
 
-#### Local AI (Offline) - Default
-```bash
-# No environment variables needed - just run:
-docker-compose up --build
-```
-
-#### Cloud AI (OpenAI)
+#### Cloud AI (OpenAI) - Default
 ```bash
 export LLM_PROVIDER=openai
-export OPENAI_API_KEY=sk-your-key-here
-docker-compose up --build
+export LLM_API_KEY=sk-your-key-here
+export LLM_MODEL=gpt-4o-mini
+docker compose up -d
 ```
 
 #### Cloud AI (Groq)
 ```bash
-export LLM_PROVIDER=openai
-export OPENAI_API_KEY=your-groq-key
-export OPENAI_BASE_URL=https://api.groq.com/openai/v1
-export OPENAI_MODEL=llama3-8b-8192
-docker-compose up --build
+export LLM_PROVIDER=groq
+export LLM_API_KEY=gsk_your-key-here
+export LLM_MODEL=llama3-8b-8192
+docker compose up -d
 ```
 
 #### Custom Ollama Port

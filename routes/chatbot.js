@@ -16,33 +16,106 @@ const pool = new Pool({
   port: process.env.POSTGRES_PORT || 5432,
 });
 
-// LLM Configuration - supports both OpenAI and Ollama
+// Enhanced LLM Provider Configuration with Simplified Variables
 const LLM_PROVIDER = process.env.LLM_PROVIDER || 'ollama';
-const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2:3b';
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://ollama:11434';
+
+// Provider configurations with preconfigured base URLs
+const PROVIDER_CONFIGS = {
+  openai: {
+    apiKey: process.env.LLM_API_KEY,
+    baseURL: 'https://api.openai.com/v1',
+    model: process.env.LLM_MODEL || 'gpt-4o-mini',
+    name: 'OpenAI'
+  },
+  groq: {
+    apiKey: process.env.LLM_API_KEY,
+    baseURL: 'https://api.groq.com/openai/v1',
+    model: process.env.LLM_MODEL || 'llama3-8b-8192',
+    name: 'Groq'
+  },
+  ollama: {
+    apiKey: 'ollama', // Ollama doesn't require a real API key
+    baseURL: `${process.env.OLLAMA_BASE_URL || 'http://ollama:11434'}/v1`,
+    model: process.env.LLM_MODEL || 'llama3.2:3b',
+    name: 'Ollama (Local)'
+  },
+  z_ai: {
+    apiKey: process.env.LLM_API_KEY,
+    baseURL: 'https://api.z.ai/v1',
+    model: process.env.LLM_MODEL || 'zai-medical-7b',
+    name: 'Z.AI'
+  },
+  deepseek: {
+    apiKey: process.env.LLM_API_KEY,
+    baseURL: 'https://api.deepseek.com/v1',
+    model: process.env.LLM_MODEL || 'deepseek-coder',
+    name: 'DeepSeek'
+  },
+  custom: {
+    apiKey: process.env.LLM_API_KEY,
+    baseURL: process.env.LLM_BASE_URL || 'http://localhost:1234/v1',
+    model: process.env.LLM_MODEL || 'custom-model',
+    name: 'Custom API'
+  }
+};
 
 // Initialize LLM client based on provider
 let llmClient;
-if (LLM_PROVIDER === 'openai') {
-  llmClient = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'sk-fake-key-for-testing',
-  baseURL: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'
-});
-  console.log(`🤖 LLM Provider: OpenAI (${OPENAI_MODEL})`);
-  console.log(`🌐 OpenAI Base URL: ${process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'}`);
-  console.log(`🔑 OpenAI API Key: ${process.env.OPENAI_API_KEY ? '✅ Configured' : '❌ Missing'}`);
-} else {
-  // Use Ollama with OpenAI-compatible API
-  llmClient = new OpenAI({
-    apiKey: 'ollama', // Ollama doesn't require a real API key
-    baseURL: `${OLLAMA_BASE_URL}/v1`
-  });
-  console.log(`🤖 LLM Provider: Ollama (${OLLAMA_MODEL})`);
-  console.log(`🌐 Ollama Base URL: ${OLLAMA_BASE_URL}/v1`);
-  console.log(`🔌 Ollama Port: ${process.env.OLLAMA_PORT || '11435'} (external)`);
-  console.log(`📦 Model: ${OLLAMA_MODEL}`);
+let currentProviderConfig;
+
+function initializeLLMProvider() {
+  const config = PROVIDER_CONFIGS[LLM_PROVIDER];
+  
+  if (!config) {
+    console.error(`❌ Unknown LLM provider: ${LLM_PROVIDER}`);
+    console.log(`🔄 Falling back to Ollama provider`);
+    const fallbackConfig = PROVIDER_CONFIGS.ollama;
+    llmClient = new OpenAI({
+      apiKey: fallbackConfig.apiKey,
+      baseURL: fallbackConfig.baseURL
+    });
+    currentProviderConfig = fallbackConfig;
+    return;
+  }
+
+  // Validate required fields
+  if (LLM_PROVIDER !== 'ollama' && !config.apiKey) {
+    console.error(`❌ API Key required for ${config.name} provider`);
+    console.log(`🔄 Please set ${LLM_PROVIDER.toUpperCase()}_API_KEY in your .env file`);
+  }
+
+  try {
+    llmClient = new OpenAI({
+      apiKey: config.apiKey || 'fake-key-for-testing',
+      baseURL: config.baseURL
+    });
+    
+    currentProviderConfig = config;
+    
+    console.log(`🤖 LLM Provider: ${config.name}`);
+    console.log(`📦 Model: ${config.model}`);
+    console.log(`🌐 Base URL: ${config.baseURL}`);
+    console.log(`🔑 API Key: ${config.apiKey ? '✅ Configured' : '❌ Missing'}`);
+    
+    if (LLM_PROVIDER === 'ollama') {
+      console.log(`🔌 External Port: ${process.env.OLLAMA_PORT || '11435'}`);
+    }
+    
+  } catch (error) {
+    console.error(`❌ Failed to initialize ${config.name} provider:`, error.message);
+    console.log(`🔄 Falling back to Ollama provider`);
+    
+    const fallbackConfig = PROVIDER_CONFIGS.ollama;
+    llmClient = new OpenAI({
+      apiKey: fallbackConfig.apiKey,
+      baseURL: fallbackConfig.baseURL
+    });
+    currentProviderConfig = fallbackConfig;
+  }
 }
+
+// Initialize the provider
+initializeLLMProvider();
 
 // Helper function to check if Ollama model is ready
 function checkOllamaModelReady() {
@@ -52,8 +125,11 @@ function checkOllamaModelReady() {
       return;
     }
     
+    const ollamaBaseUrl = process.env.OLLAMA_BASE_URL || 'http://ollama:11434';
+    const ollamaModel = process.env.OLLAMA_MODEL || 'llama3.2:3b';
+    
     // Use curl to check if model exists (same as setup script)
-    exec(`curl -s ${OLLAMA_BASE_URL}/api/tags`, (error, stdout, stderr) => {
+    exec(`curl -s ${ollamaBaseUrl}/api/tags`, (error, stdout, stderr) => {
       if (error) {
         resolve({ 
           ready: false, 
@@ -65,7 +141,7 @@ function checkOllamaModelReady() {
       try {
         const data = JSON.parse(stdout);
         const modelExists = data.models && data.models.some(model => 
-          model.name === OLLAMA_MODEL || model.name.startsWith(OLLAMA_MODEL.split(':')[0])
+          model.name === ollamaModel || model.name.startsWith(ollamaModel.split(':')[0])
         );
         
         if (modelExists) {
@@ -73,7 +149,7 @@ function checkOllamaModelReady() {
         } else {
           resolve({ 
             ready: false, 
-            message: `🤖 AI model '${OLLAMA_MODEL}' is still downloading. This usually takes 2-5 minutes on first startup. Please try again in a moment.`
+            message: `🤖 AI model '${ollamaModel}' is still downloading. This usually takes 2-5 minutes on first startup. Please try again in a moment.`
           });
         }
       } catch (parseError) {
@@ -88,7 +164,7 @@ function checkOllamaModelReady() {
 
 // Helper function to get the correct model name
 function getModelName() {
-  return LLM_PROVIDER === 'openai' ? OPENAI_MODEL : OLLAMA_MODEL;
+  return currentProviderConfig ? currentProviderConfig.model : 'fallback-model';
 }
 
 // Load knowledge base from file
@@ -826,9 +902,13 @@ router.get('/admin/llm-status', (req, res) => {
   if (auth && auth.includes('admin')) {
     res.json({
       system: 'ZeroHealth AI System',
+      provider: LLM_PROVIDER,
+      provider_name: currentProviderConfig ? currentProviderConfig.name : 'Unknown',
       llm_model: getModelName(),
-      api_endpoint: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+      api_endpoint: currentProviderConfig ? currentProviderConfig.baseURL : 'Unknown',
+      api_key_configured: currentProviderConfig ? !!currentProviderConfig.apiKey : false,
       knowledge_base: Object.keys(knowledgeBase).length > 0 ? 'Loaded' : 'Error',
+      available_providers: Object.keys(PROVIDER_CONFIGS),
       database_schema: {
         users: 'id, first_name, last_name, email, role, password',
         medical_records: 'id, user_id, title, content, created_at',
@@ -878,4 +958,4 @@ async function verifyDatabaseSchema() {
 // Verify schema on startup
 verifyDatabaseSchema();
 
-module.exports = router; 
+module.exports = router;
