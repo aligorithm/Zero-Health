@@ -1707,7 +1707,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         );
         
         // Generate the recovery URL with the code - point to React frontend
-        const recoveryUrl = `http://localhost:3000/reset-password?email=${encodeURIComponent(email)}&code=${recoveryCode}`;
+        const recoveryUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?email=${encodeURIComponent(email)}&code=${recoveryCode}`;
         
         // Generate HTML email content (this simulates what would be sent)
         const emailHtml = `
@@ -1829,7 +1829,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 app.get('/reset-password', (req, res) => {
     // This route has been moved to React frontend
     // XSS vulnerability is now demonstrated in React component using dangerouslySetInnerHTML
-    res.redirect(`http://localhost:3000/reset-password?${req.url.split('?')[1] || ''}`);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?${req.url.split('?')[1] || ''}`);
 });
 */
 

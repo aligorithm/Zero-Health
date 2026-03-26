@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import logo from '../assets/logo-light-bg.svg';
+import { buildApiUrl, API_BASE_URL } from '../config/api';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -13,7 +14,7 @@ const ForgotPassword = () => {
     setMessage('');
     
     try {
-      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+      const response = await fetch(buildApiUrl('/api/auth/forgot-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,7 +75,7 @@ const ForgotPassword = () => {
           <div className="email-preview">
             <h4>📧 Email Preview (Development Mode)</h4>
             <p>In a real application, this would be sent to your email. For testing purposes, you can view the email here:</p>
-            <a href={`http://localhost:5000${emailPreview.emailPreviewUrl}`} target="_blank" rel="noopener noreferrer" className="preview-link">
+            <a href={`${API_BASE_URL}${emailPreview.emailPreviewUrl}`} target="_blank" rel="noopener noreferrer" className="preview-link">
               View Password Reset Email
             </a>
             <br /><br />

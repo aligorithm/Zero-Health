@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import logo from '../assets/logo-light-bg.svg';
+import { buildApiUrl } from '../config/api';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -36,7 +37,7 @@ const ResetPassword = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/reset-password', {
+      const response = await fetch(buildApiUrl('/api/auth/reset-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

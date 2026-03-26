@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import logo from '../assets/zero-health-logo-dark.svg';
 import Chatbot from './Chatbot';
+import { buildApiUrl, buildUploadUrl, API_BASE_URL } from '../config/api';
 
 const PatientPortal = () => {
   const [user, setUser] = useState(null);
@@ -78,7 +79,7 @@ const PatientPortal = () => {
 
   const fetchAppointments = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/appointments', {
+      const response = await fetch('${API_BASE_URL}/api/appointments', {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -92,7 +93,7 @@ const PatientPortal = () => {
 
   const fetchLabResults = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/lab-results', {
+      const response = await fetch('${API_BASE_URL}/api/lab-results', {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -106,7 +107,7 @@ const PatientPortal = () => {
 
   const fetchPrescriptions = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/prescriptions', {
+      const response = await fetch('${API_BASE_URL}/api/prescriptions', {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -120,7 +121,7 @@ const PatientPortal = () => {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/messages', {
+      const response = await fetch('${API_BASE_URL}/api/messages', {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -134,7 +135,7 @@ const PatientPortal = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/doctors', {
+      const response = await fetch('${API_BASE_URL}/api/doctors', {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -149,7 +150,7 @@ const PatientPortal = () => {
   const handleBookAppointment = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/appointments', {
+      const response = await fetch('${API_BASE_URL}/api/appointments', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(newAppointment)
@@ -179,7 +180,7 @@ const PatientPortal = () => {
         formData.append('attachment', messageAttachment);
       }
       
-      const response = await fetch('http://localhost:5000/api/messages', {
+      const response = await fetch('${API_BASE_URL}/api/messages', {
         method: 'POST',
         headers: {
           'Authorization': getAuthToken() ? `Bearer ${getAuthToken()}` : ''
@@ -377,7 +378,7 @@ const PatientPortal = () => {
                         <strong>Lab Image:</strong>
                         <div style={{ marginTop: '8px' }}>
                           <img 
-                            src={`http://localhost:5000/uploads/${result.file_path}`} 
+                            src={`${API_BASE_URL}/uploads/${result.file_path}`} 
                             alt="Lab result" 
                             style={{
                               maxWidth: '100%',
@@ -387,11 +388,11 @@ const PatientPortal = () => {
                               borderRadius: '4px',
                               cursor: 'pointer'
                             }}
-                            onClick={() => window.open(`http://localhost:5000/uploads/${result.file_path}`, '_blank')}
+                            onClick={() => window.open(`${API_BASE_URL}/uploads/${result.file_path}`, '_blank')}
                           />
                           <div style={{ marginTop: '4px' }}>
                             <button
-                              onClick={() => window.open(`http://localhost:5000/uploads/${result.file_path}`, '_blank')}
+                              onClick={() => window.open(`${API_BASE_URL}/uploads/${result.file_path}`, '_blank')}
                               style={{
                                 background: 'var(--color-teal-zero)',
                                 color: 'white',
@@ -540,10 +541,10 @@ const PatientPortal = () => {
                         {message.attachment_path && message.attachment_path !== 'null' && message.attachment_path.trim() !== '' && (
                           <div style={{marginTop: '10px'}}>
                             <img 
-                              src={`http://localhost:5000/uploads/${message.attachment_path}`} 
+                              src={`${API_BASE_URL}/uploads/${message.attachment_path}`} 
                               alt="Message attachment" 
                               style={{maxHeight: '200px', maxWidth: '300px', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer'}}
-                              onClick={() => window.open(`http://localhost:5000/uploads/${message.attachment_path}`, '_blank')}
+                              onClick={() => window.open(`${API_BASE_URL}/uploads/${message.attachment_path}`, '_blank')}
                             />
                           </div>
                         )}

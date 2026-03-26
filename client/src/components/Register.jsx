@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import logo from '../assets/logo-light-bg.svg';
+import { buildApiUrl } from '../config/api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -34,7 +35,7 @@ const Register = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/register', {
+      const response = await fetch(buildApiUrl('/api/register'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
