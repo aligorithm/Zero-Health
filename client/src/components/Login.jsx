@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import logo from '../assets/logo-light-bg.svg';
+import { buildApiUrl } from '../config/api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
