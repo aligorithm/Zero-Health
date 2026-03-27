@@ -111,8 +111,4 @@ CREATE TABLE chat_history (
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_chat_history_user_id ON chat_history(user_id);
-CREATE INDEX idx_medical_history_patient_id ON medical_history(patient_id);
-
--- Grant excessive permissions (deliberately weak)
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres; 
+CREATE INDEX idx_medical_history_patient_id ON medical_history(patient_id); 
