@@ -79,7 +79,7 @@ const PatientPortal = () => {
 
   const fetchAppointments = async () => {
     try {
-      const response = await fetch(buildApiUrl('/api/appointments', {
+      const response = await fetch(buildApiUrl('/api/appointments'), {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -93,7 +93,7 @@ const PatientPortal = () => {
 
   const fetchLabResults = async () => {
     try {
-      const response = await fetch(buildApiUrl('/api/lab-results', {
+      const response = await fetch(buildApiUrl('/api/lab-results'), {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -107,7 +107,7 @@ const PatientPortal = () => {
 
   const fetchPrescriptions = async () => {
     try {
-      const response = await fetch(buildApiUrl('/api/prescriptions', {
+      const response = await fetch(buildApiUrl('/api/prescriptions'), {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -121,7 +121,7 @@ const PatientPortal = () => {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch(buildApiUrl('/api/messages', {
+      const response = await fetch(buildApiUrl('/api/messages'), {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -135,7 +135,7 @@ const PatientPortal = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await fetch(buildApiUrl('/api/doctors', {
+      const response = await fetch(buildApiUrl('/api/doctors'), {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -150,7 +150,7 @@ const PatientPortal = () => {
   const handleBookAppointment = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(buildApiUrl('/api/appointments', {
+      const response = await fetch(buildApiUrl('/api/appointments'), {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(newAppointment)
@@ -180,7 +180,7 @@ const PatientPortal = () => {
         formData.append('attachment', messageAttachment);
       }
       
-      const response = await fetch(buildApiUrl('/api/messages', {
+      const response = await fetch(buildApiUrl('/api/messages'), {
         method: 'POST',
         headers: {
           'Authorization': getAuthToken() ? `Bearer ${getAuthToken()}` : ''
