@@ -79,7 +79,7 @@ const PatientPortal = () => {
 
   const fetchAppointments = async () => {
     try {
-      const response = await fetch('${API_BASE_URL}/api/appointments', {
+      const response = await fetch(buildApiUrl('/api/appointments', {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -93,7 +93,7 @@ const PatientPortal = () => {
 
   const fetchLabResults = async () => {
     try {
-      const response = await fetch('${API_BASE_URL}/api/lab-results', {
+      const response = await fetch(buildApiUrl('/api/lab-results', {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -107,7 +107,7 @@ const PatientPortal = () => {
 
   const fetchPrescriptions = async () => {
     try {
-      const response = await fetch('${API_BASE_URL}/api/prescriptions', {
+      const response = await fetch(buildApiUrl('/api/prescriptions', {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -121,7 +121,7 @@ const PatientPortal = () => {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch('${API_BASE_URL}/api/messages', {
+      const response = await fetch(buildApiUrl('/api/messages', {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -135,7 +135,7 @@ const PatientPortal = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await fetch('${API_BASE_URL}/api/doctors', {
+      const response = await fetch(buildApiUrl('/api/doctors', {
         headers: getAuthHeaders()
       });
       if (response.ok) {
@@ -150,7 +150,7 @@ const PatientPortal = () => {
   const handleBookAppointment = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('${API_BASE_URL}/api/appointments', {
+      const response = await fetch(buildApiUrl('/api/appointments', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(newAppointment)
@@ -180,7 +180,7 @@ const PatientPortal = () => {
         formData.append('attachment', messageAttachment);
       }
       
-      const response = await fetch('${API_BASE_URL}/api/messages', {
+      const response = await fetch(buildApiUrl('/api/messages', {
         method: 'POST',
         headers: {
           'Authorization': getAuthToken() ? `Bearer ${getAuthToken()}` : ''
@@ -378,7 +378,7 @@ const PatientPortal = () => {
                         <strong>Lab Image:</strong>
                         <div style={{ marginTop: '8px' }}>
                           <img 
-                            src={`${API_BASE_URL}/uploads/${result.file_path}`} 
+                            src={buildUploadUrl(result.file_path)} 
                             alt="Lab result" 
                             style={{
                               maxWidth: '100%',
@@ -388,11 +388,11 @@ const PatientPortal = () => {
                               borderRadius: '4px',
                               cursor: 'pointer'
                             }}
-                            onClick={() => window.open(`${API_BASE_URL}/uploads/${result.file_path}`, '_blank')}
+                            onClick={() => window.open(buildUploadUrl(result.file_path), '_blank')}
                           />
                           <div style={{ marginTop: '4px' }}>
                             <button
-                              onClick={() => window.open(`${API_BASE_URL}/uploads/${result.file_path}`, '_blank')}
+                              onClick={() => window.open(buildUploadUrl(result.file_path), '_blank')}
                               style={{
                                 background: 'var(--color-teal-zero)',
                                 color: 'white',
@@ -541,10 +541,10 @@ const PatientPortal = () => {
                         {message.attachment_path && message.attachment_path !== 'null' && message.attachment_path.trim() !== '' && (
                           <div style={{marginTop: '10px'}}>
                             <img 
-                              src={`${API_BASE_URL}/uploads/${message.attachment_path}`} 
+                              src={buildUploadUrl(message.attachment_path)} 
                               alt="Message attachment" 
                               style={{maxHeight: '200px', maxWidth: '300px', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer'}}
-                              onClick={() => window.open(`${API_BASE_URL}/uploads/${message.attachment_path}`, '_blank')}
+                              onClick={() => window.open(buildUploadUrl(message.attachment_path), '_blank')}
                             />
                           </div>
                         )}
